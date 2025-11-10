@@ -16,6 +16,11 @@ class Task extends Model
 
     protected $fillable = ['title', 'user_id', 'description', 'status'];
 
+    protected $casts = [
+        'user_id' => 'string',
+        'id' => 'string',
+    ];
+
     protected static function booted(): void
     {
         parent::booted();
