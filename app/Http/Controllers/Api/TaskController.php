@@ -43,6 +43,12 @@ class TaskController extends BaseController
             $taskQuery->whereDate('created_at', '<=', $endDate);
         }
 
+        // Sort
+        $sortBy = $request->query('sort_by', 'created_at');
+        $sortOrder = $request->query('sort_order', 'desc');
+
+        $taskQuery->orderBy($sortBy, $sortOrder);
+
         // Paginate
         $perPage = $request->query('per_page', 5);
         $tasks = $taskQuery->paginate($perPage)->append($request->query());
