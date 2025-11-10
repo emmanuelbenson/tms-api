@@ -2,57 +2,65 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Routing\Controller as BaseController;
 use App\Models\Task;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class TaskController extends BaseController
 {
     use AuthorizesRequests;
 
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');  // make sure users are authenticated
+        $this->authorizeResource(Task::class, 'task');
+    }
+
     /**
      * Display a listing of the tasks.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $user = $request->user();
 
         $taskQuery = $user->tasks()->latest();
 
-        // Optional filtering
-        if($search = $request->query('search')) {
+        // --- Optional search filter ---
+        if ($search = $request->query('search')) {
             $taskQuery->where(function ($query) use ($search) {
                 $query->where('title', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        // Filter by status
-        if($status = $request->query('status')) {
+        // --- Filter by status ---
+        if ($status = $request->query('status')) {
             $taskQuery->where('status', $status);
         }
 
-        // Filter by date range
-        if($startDate = $request->query('start_date')) {
+        // --- Filter by date range ---
+        if ($startDate = $request->query('start_date')) {
             $taskQuery->whereDate('created_at', '>=', $startDate);
         }
-        if($endDate = $request->query('end_date')) {
+        if ($endDate = $request->query('end_date')) {
             $taskQuery->whereDate('created_at', '<=', $endDate);
         }
 
-        // Sort
+        // --- Sorting ---
         $sortBy = $request->query('sort_by', 'created_at');
         $sortOrder = $request->query('sort_order', 'desc');
-
         $taskQuery->orderBy($sortBy, $sortOrder);
 
-        // Paginate
-        $perPage = $request->query('per_page', 5);
-        $tasks = $taskQuery->paginate($perPage)->append($request->query());
-        return response()->json($tasks);
+        // --- Pagination ---
+        $perPage = (int) $request->query('per_page', 3);
+        $tasks = $taskQuery->paginate($perPage)->appends($request->query());
+
+        // --- Return JSON response safely ---
+        return response()->json($tasks, 200);
     }
 
     /**
@@ -62,7 +70,7 @@ class TaskController extends BaseController
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
         ]);
 
         $task = $request->user()->tasks()->create($validated);
@@ -70,8 +78,8 @@ class TaskController extends BaseController
         return response()->json($task, 201);
     }
 
+
     /**
-     * Update the specified task.
      * @throws AuthorizationException
      */
     public function update(Request $request, Task $task): JsonResponse
@@ -81,7 +89,7 @@ class TaskController extends BaseController
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|nullable|string',
-            'status' => 'sometimes|required|in:pending,in_progress,completed',
+            'status' => 'sometimes|required|in:pending,in-progress,completed',
         ]);
 
         $task->update($validated);

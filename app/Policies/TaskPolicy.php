@@ -4,39 +4,31 @@ namespace App\Policies;
 
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TaskPolicy
 {
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Task $task): bool
+    public function viewAny(User $user)
+    {
+        return true; // all authenticated users can see their tasks
+    }
+
+    public function view(User $user, Task $task)
     {
         return $user->id === $task->user_id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function create(User $user)
     {
-                return $user->id === $task->user_id;
+        return true; // any authenticated user can create tasks
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Task $task): bool
+    public function update(User $user, Task $task)
     {
-                return $user->id === $task->user_id;
+        return $user->id === $task->user_id;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Task $task): bool
+    public function delete(User $user, Task $task)
     {
-                return $user->id === $task->user_id;
+        return $user->id === $task->user_id;
     }
 }

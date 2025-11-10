@@ -11,6 +11,9 @@ class Task extends Model
 {
     use HasFactory;
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = ['title', 'user_id', 'description', 'status'];
 
     protected static function booted(): void
